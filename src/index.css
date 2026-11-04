@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  /* Surfaces: approximated from the Figma prototype, replace with exported values */
+  --color-page: #0d0f17;
+  --color-sidebar: #10131c;
+  --color-card: #151826;
+  --color-raised: #1b1f31;
+  --color-line: #242839;
+  --color-ink: #f4f5f9;
+  --color-muted: #8b90a3;
+  /* Brand */
+  --color-accent: #c92572;
+  --color-accent-soft: #c9257226;
+  --color-accent-muted: #7a3a62;
+  /* Status */
+  --color-done: #34d399;
+  --color-missed: #f5a524;
+}
+
+html, body, #root { height: 100%; }
+body { background: var(--color-page); color: var(--color-ink); font-family: var(--font-sans); }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
