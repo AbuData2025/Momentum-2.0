@@ -6,6 +6,7 @@ import { PageHeader } from "../components/ui";
 import { useAuth } from "../auth/AuthContext";
 import { formatDuration, formatPace } from "../lib/format";
 import { createPlan } from "../lib/plans";
+import { settle } from "../lib/sync";
 import { parseDuration, todayISO } from "../lib/workout";
 import { GOALS, generatePlan, goalPaceSecPerKm, type Experience, type Goal, type Objective } from "../training/generate";
 
@@ -48,7 +49,7 @@ export default function PlanSetup() {
     if (!result?.ok || !user || !s.goal || !s.experience) return;
     setSaving(true); setError(false);
     try {
-      await createPlan(user.uid, { goal: s.goal, experience: s.experience, objective: s.objective, targetTimeSec: targetSec, raceDate: s.raceDate || null, runDays: s.runDays, longRunDay: s.longRunDay }, result.plan, active?.id);
+      await settle(createPlan(user.uid, { goal: s.goal, experience: s.experience, objective: s.objective, targetTimeSec: targetSec, raceDate: s.raceDate || null, runDays: s.runDays, longRunDay: s.longRunDay }, result.plan, active?.id));
       nav("/plan");
     } catch { setError(true); setSaving(false); }
   }

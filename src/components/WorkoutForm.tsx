@@ -3,6 +3,7 @@ import { Trash2 } from "lucide-react";
 import DurationInput from "./DurationInput";
 import { formatDuration, formatPace, paceSecPerKm } from "../lib/format";
 import { RUN_TYPES, RUN_TYPE_LABEL, parseDuration, todayISO, workoutSchema, type RunType } from "../lib/workout";
+import { settle } from "../lib/sync";
 import { createWorkout, removeWorkout, updateWorkout, type Workout } from "../lib/workouts";
 
 const input = (bad: boolean) =>
@@ -54,7 +55,7 @@ export default function WorkoutForm({ uid, workout, initialDate, onClose }: { ui
     }
     setErrors({}); setSaveError(false); setSaving(true);
     try {
-      await (workout ? updateWorkout(uid, workout.id, parsed.data) : createWorkout(uid, parsed.data));
+      await settle(workout ? updateWorkout(uid, workout.id, parsed.data) : createWorkout(uid, parsed.data));
       onClose();
     } catch { setSaveError(true); } finally { setSaving(false); }
   }
@@ -62,7 +63,7 @@ export default function WorkoutForm({ uid, workout, initialDate, onClose }: { ui
   async function remove() {
     if (!workout) return;
     setSaving(true);
-    try { await removeWorkout(uid, workout.id); onClose(); } catch { setSaveError(true); setConfirmDelete(false); } finally { setSaving(false); }
+    try { await settle(removeWorkout(uid, workout.id)); onClose(); } catch { setSaveError(true); setConfirmDelete(false); } finally { setSaving(false); }
   }
 
   return (

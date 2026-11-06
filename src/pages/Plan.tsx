@@ -8,6 +8,7 @@ import { useWorkouts } from "../components/WorkoutsProvider";
 import { formatDuration, formatPace } from "../lib/format";
 import { addDaysISO } from "../lib/history";
 import { deletePlan, rescheduleSession, setSkipped, type Session } from "../lib/plans";
+import { settle } from "../lib/sync";
 import { todayISO } from "../lib/workout";
 import { GOALS, goalPaceSecPerKm } from "../training/generate";
 import { currentWeek, planProgress, sessionStatus, type SessionStatus } from "../training/progress";
@@ -44,7 +45,7 @@ export default function Plan() {
   const kmIn = (a: string, b: string) => workouts.filter((w) => w.date >= a && w.date <= b).reduce((t, w) => t + w.distanceKm, 0);
   const prog = planProgress(sessions, dates, today);
   const maxKm = Math.max(...plan.weeklyKm);
-  const run = async (f: () => Promise<unknown>) => { try { await f(); setFailed(false); } catch { setFailed(true); } };
+  const run = async (f: () => Promise<unknown>) => { try { await settle(f()); setFailed(false); } catch { setFailed(true); } };
 
   const row = (s: Session) => {
     const st = sessionStatus(s, dates, today);
@@ -69,7 +70,7 @@ export default function Plan() {
         {moving?.id === s.id && (
           <div className="mt-2 flex items-center gap-2">
             <input type="date" aria-label="New date" min={today} value={moving.date} onChange={(e) => setMoving({ id: s.id, date: e.target.value })} className="rounded-md border border-line bg-page px-2 py-1 text-xs [color-scheme:dark]" />
-            <button disabled={!moving.date || moving.date < today} onClick={() => run(async () => { await rescheduleSession(user!.uid, plan.id, s.id, moving.date); setMoving(null); })} className={`${btn} bg-accent`}>Save</button>
+            <button disabled={!moving.date || moving.date < today} onClick={() => run(() => { setMoving(null); return rescheduleSession(user!.uid, plan.id, s.id, moving.date); })} className={`${btn} bg-accent`}>Save</button>
             <button onClick={() => setMoving(null)} className={btn}>Cancel</button>
           </div>
         )}
@@ -88,7 +89,7 @@ export default function Plan() {
         <p className="mt-1 text-muted">All its planned sessions are removed. Your logged runs are kept. This can't be undone.</p>
         <div className="mt-3 flex gap-2">
           <button onClick={() => setConfirmDel(false)} className={btn}>Keep plan</button>
-          <button onClick={() => run(async () => { await deletePlan(user!.uid, plan.id); setConfirmDel(false); })} className={`${btn} border-accent text-accent`}>Delete plan</button>
+          <button onClick={() => run(() => { setConfirmDel(false); return deletePlan(user!.uid, plan.id); })} className={`${btn} border-accent text-accent`}>Delete plan</button>
         </div>
       </div>
     )}

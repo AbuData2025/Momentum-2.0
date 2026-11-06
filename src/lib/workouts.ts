@@ -1,5 +1,6 @@
 import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "./firebase";
+import { track } from "./sync";
 import type { WorkoutInput } from "./workout";
 
 export type Workout = WorkoutInput & { id: string };
@@ -14,7 +15,7 @@ export const subscribeWorkouts = (uid: string, onData: (w: Workout[]) => void, o
   }, onError);
 
 export const createWorkout = (uid: string, input: WorkoutInput) =>
-  addDoc(col(uid), { ...input, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  track(addDoc(col(uid), { ...input, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }));
 export const updateWorkout = (uid: string, id: string, input: WorkoutInput) =>
-  updateDoc(ref(uid, id), { ...input, updatedAt: serverTimestamp() });
-export const removeWorkout = (uid: string, id: string) => deleteDoc(ref(uid, id));
+  track(updateDoc(ref(uid, id), { ...input, updatedAt: serverTimestamp() }));
+export const removeWorkout = (uid: string, id: string) => track(deleteDoc(ref(uid, id)));

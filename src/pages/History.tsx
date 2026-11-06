@@ -7,6 +7,7 @@ import { EmptyState, PageHeader, StatCard } from "../components/ui";
 import { formatDuration, formatPace, paceSecPerKm } from "../lib/format";
 import { filterWorkouts, paginate, summarize, toCSV, weekCounts, type Filters } from "../lib/history";
 import { RUN_TYPES, RUN_TYPE_LABEL } from "../lib/workout";
+import { settle } from "../lib/sync";
 import { removeWorkout } from "../lib/workouts";
 
 const RANGES = [{ label: "All time", days: null }, { label: "Last 14 days", days: 14 }, { label: "Last 30 days", days: 30 }, { label: "Last 90 days", days: 90 }];
@@ -39,7 +40,7 @@ export default function History() {
   }
 
   async function confirmDelete(id: string) {
-    try { await removeWorkout(user!.uid, id); setDeleteError(false); } catch { setDeleteError(true); }
+    try { await settle(removeWorkout(user!.uid, id)); setDeleteError(false); } catch { setDeleteError(true); }
     setConfirmId(null);
   }
 

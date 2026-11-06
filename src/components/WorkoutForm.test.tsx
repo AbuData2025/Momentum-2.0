@@ -43,6 +43,16 @@ describe("WorkoutForm", () => {
     await user.type(screen.getByLabelText("Hours"), "01");
     expect(document.activeElement).toBe(screen.getByLabelText("Minutes"));
   });
+  it("closes without waiting for the server when offline", async () => {
+    const spy = vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+    vi.mocked(createWorkout).mockReturnValueOnce(new Promise(() => {}) as never);
+    const { user, onClose } = setup();
+    await fillValid(user);
+    await user.click(screen.getByRole("button", { name: "Save workout" }));
+    await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(screen.queryByText(/couldn't save your changes/)).toBeNull();
+    spy.mockRestore();
+  });
   it("does not offer future dates", () => {
     setup();
     expect(screen.getByLabelText("Date *").getAttribute("max")).toBe(todayISO());

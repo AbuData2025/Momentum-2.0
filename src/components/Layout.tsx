@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation } from "react-router";
 import { BarChart3, CalendarDays, Flag, LayoutGrid, ListFilter, LogOut } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
+import SyncBanner from "./SyncBanner";
 
 export const NAV = [
   { to: "/", label: "Overview", short: "Overview", icon: LayoutGrid },
@@ -42,6 +43,7 @@ export default function Layout() {
             <button onClick={logOut} aria-label="Sign out" className="rounded-md border border-line p-1.5 md:hidden"><LogOut size={13} /></button>
           </span>
         </header>
+        <SyncBanner />
         <main id="main" tabIndex={-1} className="flex-1 overflow-y-auto p-4 pb-24 outline-none md:p-8 md:pb-8"><Outlet /></main>
       </div>
 

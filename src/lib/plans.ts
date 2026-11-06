@@ -1,5 +1,6 @@
 import { collection, deleteDoc, doc, getDocs, onSnapshot, query, serverTimestamp, updateDoc, where, writeBatch } from "firebase/firestore";
 import { db } from "./firebase";
+import { track } from "./sync";
 import type { Experience, GeneratedPlan, Goal, Objective, Phase, PlannedSessionData } from "../training/generate";
 
 export type Plan = {
@@ -32,22 +33,25 @@ export async function createPlan(uid: string, settings: PlanSettings, gen: Gener
   const ref = doc(plans(uid));
   batch.set(ref, { ...settings, startDate: gen.startDate, weeks: gen.weeks, phases: gen.phases, weeklyKm: gen.weeklyKm, warnings: gen.warnings, status: "active", createdAt: serverTimestamp() });
   for (const s of gen.sessions) batch.set(doc(collection(ref, "sessions")), { ...s, originalDate: s.date, status: "scheduled" });
-  await batch.commit();
+  await track(batch.commit());
 }
 
 const sessionRef = (uid: string, planId: string, id: string) => doc(db, "users", uid, "plans", planId, "sessions", id);
 export const setSkipped = (uid: string, planId: string, id: string, skipped: boolean) =>
-  updateDoc(sessionRef(uid, planId, id), { status: skipped ? "skipped" : "scheduled" });
-export const rescheduleSession = (uid: string, planId: string, id: string, date: string) => updateDoc(sessionRef(uid, planId, id), { date });
+  track(updateDoc(sessionRef(uid, planId, id), { status: skipped ? "skipped" : "scheduled" }));
+export const rescheduleSession = (uid: string, planId: string, id: string, date: string) => track(updateDoc(sessionRef(uid, planId, id), { date }));
 
-/** Deletes the plan and its sessions. Logged workouts are separate documents and are never touched. */
+/** Deletes the plan and its sessions. Logged workouts are separate documents and are never touched.
+ *  Every delete is queued up front, so none is lost if the connection drops part-way. */
 export async function deletePlan(uid: string, planId: string) {
   const ref = doc(plans(uid), planId);
   const snap = await getDocs(collection(ref, "sessions"));
+  const ops: Promise<void>[] = [];
   for (let i = 0; i < snap.docs.length; i += 400) {
     const batch = writeBatch(db);
     snap.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
-    await batch.commit();
+    ops.push(batch.commit());
   }
-  await deleteDoc(ref);
+  ops.push(deleteDoc(ref));
+  await track(Promise.all(ops));
 }
