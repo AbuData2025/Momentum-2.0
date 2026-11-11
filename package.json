@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "emulators": "firebase emulators:start"
+    "emulators": "firebase emulators:start",
+    "preview": "vite preview"
   },
   "dependencies": {
     "@capacitor-firebase/authentication": "^8.6.0",
