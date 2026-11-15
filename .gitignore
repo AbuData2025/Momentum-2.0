@@ -3,3 +3,4 @@ dist
 .env
 .firebase
 *.log
+android/app/google-services.json
